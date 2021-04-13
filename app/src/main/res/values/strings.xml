@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Pictures App</string>
+    <string name="error_no_query">הכנס מילת חיפוש</string>
+    <string name="error_no_results">לא נמצאו תוצאות</string>
+    <string name="general_error">אירעה תקלה, אנא נסה שנית</string>
+
+</resources>
