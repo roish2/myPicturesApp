@@ -42,7 +42,6 @@ class RecyclerPicturesAdapter(val context: Context, var data: ArrayList<PictureH
             mainLayout.layoutParams = params
 
 
-            if (itemView.tag == null){
                 Glide.with(context)
                     .load(item.smallImageUrl)
                     .into(ivSmallImage)
@@ -56,11 +55,6 @@ class RecyclerPicturesAdapter(val context: Context, var data: ArrayList<PictureH
                         ivSmallImage.requestLayout()
                     }, 50)
                 }
-            }
-
-
-
-            itemView.tag = item.smallImageUrl
 
         }
     }
