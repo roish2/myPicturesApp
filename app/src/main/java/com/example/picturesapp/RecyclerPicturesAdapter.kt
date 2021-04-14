@@ -5,6 +5,7 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
@@ -40,21 +41,26 @@ class RecyclerPicturesAdapter(val context: Context, var data: ArrayList<PictureH
             val params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, height)
             mainLayout.layoutParams = params
 
-            Glide.with(context)
-                .load(item.smallImageUrl)
-                .into(ivSmallImage)
 
+            if (itemView.tag == null){
+                Glide.with(context)
+                    .load(item.smallImageUrl)
+                    .into(ivSmallImage)
 
-            if (item.previewHeight < maxHeight) {
-                val scale: Float = (maxHeight.toFloat() / item.previewHeight.toFloat())
-                ivSmallImage.scaleY = scale
-                ivSmallImage.scaleX = scale
+                if (item.previewHeight < maxHeight) {
+                    val scale: Float = (maxHeight.toFloat() / item.previewHeight.toFloat())
+                    ivSmallImage.scaleY = scale
+                    ivSmallImage.scaleX = scale
+                    itemView.postDelayed({
+                        mainLayout.requestLayout()
+                        ivSmallImage.requestLayout()
+                    }, 50)
+                }
             }
 
-            itemView.postDelayed({
-                mainLayout.requestLayout()
-                ivSmallImage.requestLayout()
-            }, 50)
+
+
+            itemView.tag = item.smallImageUrl
 
         }
     }
