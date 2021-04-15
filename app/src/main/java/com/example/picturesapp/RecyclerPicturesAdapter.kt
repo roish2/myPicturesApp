@@ -1,15 +1,16 @@
 package com.example.picturesapp
 
 import android.content.Context
-import android.util.TypedValue
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.ImageView
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.picturesapp.models.PictureHit
 
 
@@ -31,30 +32,30 @@ class RecyclerPicturesAdapter(val context: Context, var data: ArrayList<PictureH
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        private val mainLayout: ConstraintLayout = itemView.findViewById(R.id.main_layout)
         private val ivSmallImage: ImageView = itemView.findViewById(R.id.small_image)
 
         fun onBind(item: PictureHit) {
 
-            val height = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, maxHeight.toFloat(), context.resources.displayMetrics).toInt()
-
-            val params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, height)
-            mainLayout.layoutParams = params
-
-
                 Glide.with(context)
+                    .asBitmap()
                     .load(item.smallImageUrl)
-                    .into(ivSmallImage)
+                    .into(object : CustomTarget<Bitmap>(){
+                        override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                            if (item.previewHeight < maxHeight) {
+                                val scale: Float = (maxHeight.toFloat() / item.previewHeight.toFloat())
+                                val resized = Bitmap.createScaledBitmap(resource,(resource.width *scale).toInt(), (resource.height *scale).toInt(), true)
+                                ivSmallImage.setImageBitmap(resized)
+                                ivSmallImage.requestLayout()
 
-                if (item.previewHeight < maxHeight) {
-                    val scale: Float = (maxHeight.toFloat() / item.previewHeight.toFloat())
-                    ivSmallImage.scaleY = scale
-                    ivSmallImage.scaleX = scale
-                    itemView.postDelayed({
-                        mainLayout.requestLayout()
-                        ivSmallImage.requestLayout()
-                    }, 50)
-                }
+                            }else{
+                                ivSmallImage.setImageBitmap(resource)
+                            }
+
+                        }
+                        override fun onLoadCleared(placeholder: Drawable?) {
+
+                        }
+                    })
 
         }
     }

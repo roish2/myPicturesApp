@@ -4,8 +4,10 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -29,6 +31,8 @@ class MainActivity : AppCompatActivity() {
     private var lastMaxHeight = -1
     private lateinit var prefs:SharedPreferences
     private var isRefreshOnScrolling:Boolean = false
+    private lateinit var progressBar:ProgressBar
+    private var isFromPref = false
 
     companion object {
         private const val PREFERENCE_NAME: String = "com.example.picturesapp"
@@ -48,12 +52,14 @@ class MainActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.my_recyclerView)
         val button: Button = findViewById(R.id.button)
         val searchText: EditText = findViewById(R.id.search_text)
+        progressBar = findViewById(R.id.progressBar)
 
         getScreenHeightDisplay(button)
 
         if (!prefs.getString(PREFERENCE_DATA_NAME,"").isNullOrEmpty()){
             val listOfTestObject: Type = object : TypeToken<List<PictureHit?>?>() {}.type
             dataPicturesList = gson.fromJson(prefs.getString(PREFERENCE_DATA_NAME,""), listOfTestObject)
+            isFromPref = true
         }
 
 
@@ -63,7 +69,9 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = recyclerPicturesAdapter
 
         button.setOnClickListener {
+            isFromPref = false
             if (searchText.text.toString().trim().isNotEmpty()){
+                progressBar.visibility = View.VISIBLE
                 isRefreshOnScrolling = true
                 dataPicturesList.clear()
                 recyclerPicturesAdapter.notifyDataSetChanged()
@@ -77,7 +85,8 @@ class MainActivity : AppCompatActivity() {
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
-                if (!recyclerView.canScrollHorizontally(10) && isRefreshOnScrolling) {
+                if (!recyclerView.canScrollHorizontally(5) && isRefreshOnScrolling) {
+                    progressBar.visibility = View.VISIBLE
                     viewModel.getPictures()
                 }
             }
@@ -94,14 +103,13 @@ class MainActivity : AppCompatActivity() {
         val outMetrics = DisplayMetrics()
         display.getMetrics(outMetrics)
 
-        val density = resources.displayMetrics.density
-        dpHeight = ((outMetrics.heightPixels - button.height) / density).toInt()
+        dpHeight = ((outMetrics.heightPixels - button.height))
     }
 
     private val nameObserver = Observer<MainViewModel.Steps> { step ->
+        progressBar.visibility = View.GONE
         when (step) {
             is MainViewModel.Steps.DataReady -> {
-//                dataPicturesList.addAll(step.data.picturesList)
                 step.data.maxBy {
                     it.previewHeight
                 }?.let {
@@ -110,7 +118,7 @@ class MainActivity : AppCompatActivity() {
                         lastMaxHeight = it.previewHeight
                         recyclerPicturesAdapter.refreshHeight(maxHeightPicture.previewHeight)
                         val numOfColumn: Int = dpHeight / (maxHeightPicture.previewHeight)
-                        val manager = GridLayoutManager(this, numOfColumn - 1, GridLayoutManager.HORIZONTAL, false)
+                        val manager = GridLayoutManager(this, numOfColumn, GridLayoutManager.HORIZONTAL, false)
                         recyclerView.layoutManager = manager
 
                     }
@@ -120,7 +128,12 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 if (!step.data.isNullOrEmpty()) {
-                    recyclerPicturesAdapter.refreshData(step.data)
+                    if (!isFromPref){
+                        dataPicturesList.addAll(step.data)
+                        recyclerPicturesAdapter.notifyDataSetChanged()
+                    }else{
+                        recyclerPicturesAdapter.notifyDataSetChanged()
+                    }
                 }
 
 
@@ -134,6 +147,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         if (dataPicturesList.size > 0) {
+
             val listOfTestObject: Type = object : TypeToken<List<PictureHit?>?>() {}.type
             val jsonData = gson.toJson(dataPicturesList, listOfTestObject)
             prefs.edit().putString(PREFERENCE_DATA_NAME, jsonData).apply()

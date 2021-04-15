@@ -1,8 +1,6 @@
 package com.example.picturesapp
 
-import android.app.Application
 import android.content.Context
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.picturesapp.models.PictureHit
@@ -24,7 +22,7 @@ class MainViewModel: ViewModel() {
     companion object{
         private const val API_KEY = "6814610-cd083c066ad38bb511337fb2b"
         private const val IMAGE_TYPE = "photo"
-        private const val PER_PAGE = "50"
+        private const val PER_PAGE = "100"
     }
 
     init {
