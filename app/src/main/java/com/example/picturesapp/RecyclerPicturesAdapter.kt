@@ -14,7 +14,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.example.picturesapp.models.PictureHit
 
 
-class RecyclerPicturesAdapter(val context: Context, var data: ArrayList<PictureHit>, var maxHeight: Int) : RecyclerView.Adapter<RecyclerPicturesAdapter.MyViewHolder>() {
+class RecyclerPicturesAdapter(val context: Context, var data: ArrayList<PictureHit>, var maxHeight: Int, val screenDensity:Float) : RecyclerView.Adapter<RecyclerPicturesAdapter.MyViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val itemView = LayoutInflater.from(parent.context)
@@ -41,8 +41,8 @@ class RecyclerPicturesAdapter(val context: Context, var data: ArrayList<PictureH
                     .load(item.smallImageUrl)
                     .into(object : CustomTarget<Bitmap>(){
                         override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                            if (item.previewHeight < maxHeight) {
-                                val scale: Float = (maxHeight.toFloat() / item.previewHeight.toFloat())
+                            if ((item.previewHeight)/screenDensity < maxHeight) {
+                                val scale: Float = (maxHeight.toFloat() / (item.previewHeight.toFloat()/screenDensity))
                                 val resized = Bitmap.createScaledBitmap(resource,(resource.width *scale).toInt(), (resource.height *scale).toInt(), true)
                                 ivSmallImage.setImageBitmap(resized)
                                 ivSmallImage.requestLayout()

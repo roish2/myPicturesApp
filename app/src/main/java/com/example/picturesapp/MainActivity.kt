@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
 
         val manager = GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
         recyclerView.layoutManager = manager
-        recyclerPicturesAdapter = RecyclerPicturesAdapter(this, dataPicturesList, 0)
+        recyclerPicturesAdapter = RecyclerPicturesAdapter(this, dataPicturesList, 0, getScreenDensity())
         recyclerView.adapter = recyclerPicturesAdapter
 
         button.setOnClickListener {
@@ -103,7 +103,12 @@ class MainActivity : AppCompatActivity() {
         val outMetrics = DisplayMetrics()
         display.getMetrics(outMetrics)
 
-        dpHeight = ((outMetrics.heightPixels - button.height))
+        val density = getScreenDensity()
+        dpHeight = ((outMetrics.heightPixels - button.height) / density).toInt()
+    }
+
+    private fun getScreenDensity():Float{
+        return resources.displayMetrics.density
     }
 
     private val nameObserver = Observer<MainViewModel.Steps> { step ->
@@ -115,7 +120,7 @@ class MainActivity : AppCompatActivity() {
                 }?.let {
                     val maxHeightPicture: PictureHit = it
                     if (lastMaxHeight < it.previewHeight) {
-                        lastMaxHeight = it.previewHeight
+                        lastMaxHeight = (it.previewHeight/ getScreenDensity()).toInt()
                         recyclerPicturesAdapter.refreshHeight(maxHeightPicture.previewHeight)
                         val numOfColumn: Int = dpHeight / (maxHeightPicture.previewHeight)
                         val manager = GridLayoutManager(this, numOfColumn, GridLayoutManager.HORIZONTAL, false)
